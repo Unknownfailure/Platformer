@@ -10,7 +10,24 @@ const unsigned int gc_uFrameTime = 1000 / gc_ucFPS;    // time for each frame
 
 //main loop declaration
 void mainLoop( void );
+void ScreenSize(int x, int y)
+{
 
+    COORD coord;
+    coord.X = x;
+    coord.Y = y;
+
+    _SMALL_RECT Rect;
+    Rect.Top = 0;
+    Rect.Left = 0;
+    Rect.Bottom = x - 1;
+    Rect.Right = y - 1;
+
+    HANDLE Handle = GetStdHandle(STD_OUTPUT_HANDLE);
+    SetConsoleScreenBufferSize(Handle, coord);
+    SetConsoleWindowInfo(Handle, TRUE, &Rect);
+
+}
 // TODO:
 // Bug in waitUntil. it waits for the time from getElapsedTime to waitUntil, but should be insignificant.
 
@@ -18,6 +35,8 @@ void mainLoop( void );
 // You should not be modifying this unless you know what you are doing
 int main( void )
 {
+    ScreenSize(100, 100);
+    
     init();      // initialize your variables
     mainLoop();  // main loop
     shutdown();  // do clean up, if any. free memory.

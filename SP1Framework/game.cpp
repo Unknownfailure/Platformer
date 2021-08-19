@@ -14,10 +14,11 @@ SMouseEvent g_mouseEvent;
 
 // Game specific variables here
 SGameChar   g_sChar;
+SGameChar   g_sPlatform;
 EGAMESTATES g_eGameState = S_SPLASHSCREEN; // initial state
 
 // Console object
-Console g_Console(80, 25, "SP1 Framework");
+Console g_Console(80, 25, "Platformer");
 
 //--------------------------------------------------------------
 // Purpose  : Initialisation function
@@ -36,9 +37,11 @@ void init( void )
 
     g_sChar.m_cLocation.X = g_Console.getConsoleSize().X / 2;
     g_sChar.m_cLocation.Y = g_Console.getConsoleSize().Y / 2;
+    g_sPlatform.m_cLocation.X = g_Console.getConsoleSize().X - 1;
+    g_sPlatform.m_cLocation.Y = rand() % 24 + 4;
     g_sChar.m_bActive = true;
     // sets the width, height and the font name to use in the console
-    g_Console.setConsoleFont(0, 16, L"Consolas");
+    g_Console.setConsoleFont(10, 26, L"Consolas");
 
     // remember to set your keyboard handler, so that your functions can be notified of input events
     g_Console.setKeyboardHandler(keyboardHandler);
@@ -219,50 +222,55 @@ void splashScreenWait()    // waits for time to pass in splash screen
     if (g_dElapsedTime > 3.0) // wait for 3 seconds to switch to game mode, else do nothing
         g_eGameState = S_GAME;
 }
-
+void moveplatform()
+{
+    
+     g_sPlatform.m_cLocation.X--;
+}
 void updateGame()       // gameplay logic
 {
     processUserInput(); // checks if you should change states or do something else with the game, e.g. pause, exit
     moveCharacter();    // moves the character, collision detection, physics, etc
                         // sound can be played here too.
+    moveplatform();     //platform moving to the left
 }
 
 void moveCharacter()
 {    
     // Updating the location of the character based on the key release
     // providing a beep sound whenver we shift the character
-    if (g_skKeyEvent[K_UP].keyReleased && g_sChar.m_cLocation.Y > 0)
+    if (g_skKeyEvent[K_UP].keyDown && g_sChar.m_cLocation.Y > 0)
     {
         //Beep(1440, 30);
         g_sChar.m_cLocation.Y--;       
     }
-    if (g_skKeyEvent[K_LEFT].keyReleased && g_sChar.m_cLocation.X > 0)
+    if (g_sChar.m_cLocation.X > 0 && g_skKeyEvent[K_LEFT].keyDown)
     {
         //Beep(1440, 30);
         g_sChar.m_cLocation.X--;        
     }
-    if (g_skKeyEvent[K_DOWN].keyReleased && g_sChar.m_cLocation.Y < g_Console.getConsoleSize().Y - 1)
+    if (g_skKeyEvent[K_DOWN].keyDown && g_sChar.m_cLocation.Y < g_Console.getConsoleSize().Y - 1)
     {
         //Beep(1440, 30);
         g_sChar.m_cLocation.Y++;        
     }
-    if (g_skKeyEvent[K_RIGHT].keyReleased && g_sChar.m_cLocation.X < g_Console.getConsoleSize().X - 1)
+    if (g_skKeyEvent[K_RIGHT].keyDown && g_sChar.m_cLocation.X < g_Console.getConsoleSize().X - 1)
     {
         //Beep(1440, 30);
         g_sChar.m_cLocation.X++;        
     }
-    if (g_skKeyEvent[K_SPACE].keyReleased)
+    if (g_skKeyEvent[K_SPACE].keyDown)
     {
         g_sChar.m_bActive = !g_sChar.m_bActive;        
     }
-
    
 }
 void processUserInput()
 {
     // quits the game if player hits the escape key
     if (g_skKeyEvent[K_ESCAPE].keyReleased)
-        g_bQuitGame = true;    
+        g_bQuitGame = true;
+
 }
 
 //--------------------------------------------------------------
@@ -304,20 +312,26 @@ void renderSplashScreen()  // renders the splash screen
 {
     COORD c = g_Console.getConsoleSize();
     c.Y /= 3;
-    c.X = c.X / 2 - 9;
-    g_Console.writeToBuffer(c, "A game in 3 seconds", 0x03);
-    c.Y += 1;
-    c.X = g_Console.getConsoleSize().X / 2 - 20;
-    g_Console.writeToBuffer(c, "Press <Space> to change character colour", 0x09);
+    c.X = c.X / 2 - 15;
+    g_Console.writeToBuffer(c, "Try to survive as long as you can", 0x03);
     c.Y += 1;
     c.X = g_Console.getConsoleSize().X / 2 - 9;
     g_Console.writeToBuffer(c, "Press 'Esc' to quit", 0x09);
+}
+void renderplatform()
+{
+    WORD charColor = 0x1A;
+    COORD c;
+    g_Console.writeToBuffer(g_sPlatform.m_cLocation, (char)1, charColor);
+    
 }
 
 void renderGame()
 {
     renderMap();        // renders the map to the buffer first
     renderCharacter();  // renders the character into the buffer
+    renderplatform();
+    
 }
 
 void renderMap()
@@ -327,15 +341,18 @@ void renderMap()
         0x1A, 0x2B, 0x3C, 0x4D, 0x5E, 0x6F,
         0xA1, 0xB2, 0xC3, 0xD4, 0xE5, 0xF6
     };
-
+    
     COORD c;
-    for (int i = 0; i < 12; ++i)
-    {
-        c.X = 5 * i;
-        c.Y = i + 1;
-        colour(colors[i]);
-        g_Console.writeToBuffer(c, " °±²Û", colors[i]);
-    }
+        
+          c.X = 79;
+
+        c.Y = 14;
+        colour(colors[7]);
+        
+         g_Console.writeToBuffer(c, " ", colors[1]);
+
+
+    
 }
 
 void renderCharacter()
@@ -392,19 +409,19 @@ void renderInputEvents()
             break;
         default: continue;
         }
-        if (g_skKeyEvent[i].keyDown)
+       /* if (g_skKeyEvent[i].keyDown)
             ss << key << " pressed";
         else if (g_skKeyEvent[i].keyReleased)
             ss << key << " released";
         else
-            ss << key << " not pressed";
+            ss << key << " not pressed";*/
 
-        COORD c = { startPos.X, startPos.Y + i };
-        g_Console.writeToBuffer(c, ss.str(), 0x17);
+        /*COORD c = { startPos.X, startPos.Y + i };
+        g_Console.writeToBuffer(c, ss.str(), 0x17);*/
     }
 
     // mouse events    
-    ss.str("");
+    /*ss.str("");
     ss << "Mouse position (" << g_mouseEvent.mousePosition.X << ", " << g_mouseEvent.mousePosition.Y << ")";
     g_Console.writeToBuffer(g_mouseEvent.mousePosition, ss.str(), 0x59);
     ss.str("");
@@ -441,7 +458,7 @@ void renderInputEvents()
     default:        
         break;
     }
-    
+    */
 }
 
 
