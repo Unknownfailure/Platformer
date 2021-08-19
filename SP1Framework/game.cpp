@@ -38,6 +38,7 @@ void init( void )
     g_sChar.m_cLocation.X = g_Console.getConsoleSize().X / 2;
     g_sChar.m_cLocation.Y = g_Console.getConsoleSize().Y / 2;
     g_sPlatform.m_cLocation.X = g_Console.getConsoleSize().X - 1;
+    srand(int(time(NULL)));
     g_sPlatform.m_cLocation.Y = rand() % 24 + 4;
     g_sChar.m_bActive = true;
     // sets the width, height and the font name to use in the console
@@ -46,7 +47,9 @@ void init( void )
     // remember to set your keyboard handler, so that your functions can be notified of input events
     g_Console.setKeyboardHandler(keyboardHandler);
     g_Console.setMouseHandler(mouseHandler);
-}
+
+
+}   
 
 //--------------------------------------------------------------
 // Purpose  : Reset before exiting the program
@@ -219,13 +222,21 @@ void update(double dt)
 
 void splashScreenWait()    // waits for time to pass in splash screen
 {
-    if (g_dElapsedTime > 3.0) // wait for 3 seconds to switch to game mode, else do nothing
+    if (g_dElapsedTime > 1.0) // wait for 2 seconds to switch to game mode, else do nothing
         g_eGameState = S_GAME;
 }
 void moveplatform()
 {
     
      g_sPlatform.m_cLocation.X--;
+     if (g_sPlatform.m_cLocation.X < 0)
+     {
+
+         g_sPlatform.m_cLocation.X = g_Console.getConsoleSize().X - 8;
+         g_sPlatform.m_cLocation.Y = rand() % 24 + 4;
+
+
+     }
 }
 void updateGame()       // gameplay logic
 {
@@ -321,8 +332,7 @@ void renderSplashScreen()  // renders the splash screen
 void renderplatform()
 {
     WORD charColor = 0x1A;
-    COORD c;
-    g_Console.writeToBuffer(g_sPlatform.m_cLocation, (char)1, charColor);
+    g_Console.writeToBuffer(g_sPlatform.m_cLocation,"=======", charColor);
     
 }
 
@@ -342,14 +352,7 @@ void renderMap()
         0xA1, 0xB2, 0xC3, 0xD4, 0xE5, 0xF6
     };
     
-    COORD c;
-        
-          c.X = 79;
-
-        c.Y = 14;
-        colour(colors[7]);
-        
-         g_Console.writeToBuffer(c, " ", colors[1]);
+   
 
 
     
@@ -420,8 +423,8 @@ void renderInputEvents()
         g_Console.writeToBuffer(c, ss.str(), 0x17);*/
     }
 
-    // mouse events    
-    /*ss.str("");
+    /* mouse events  */  
+    ss.str("");
     ss << "Mouse position (" << g_mouseEvent.mousePosition.X << ", " << g_mouseEvent.mousePosition.Y << ")";
     g_Console.writeToBuffer(g_mouseEvent.mousePosition, ss.str(), 0x59);
     ss.str("");
@@ -458,7 +461,7 @@ void renderInputEvents()
     default:        
         break;
     }
-    */
+    
 }
 
 
